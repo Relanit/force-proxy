@@ -15,6 +15,14 @@ jobs:
     - name: Enable vcpkg integration
       run: vcpkg integrate install
 
+    - name: Disable Precompiled Headers (Fix x86 build)
+      run: |
+        $proj = "src/force-proxy.vcxproj"
+        $content = Get-Content $proj
+        # Находим все теги PrecompiledHeader и меняем их значение на NotUsing
+        $content = $content -replace '<PrecompiledHeader[^>]*>.*?</PrecompiledHeader>', '<PrecompiledHeader>NotUsing</PrecompiledHeader>'
+        Set-Content -Path $proj -Value $content
+
     - name: Restore NuGet packages
       run: nuget restore force-proxy.sln
 
