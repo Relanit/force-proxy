@@ -12,29 +12,8 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    - name: Install Detours via vcpkg
-      run: |
-        # Интегрируем vcpkg и скачиваем Detours под обе архитектуры
-        vcpkg integrate install
-        vcpkg install detours:x64-windows detours:x86-windows
-
-    - name: Patch hardcoded Detours paths
-      run: |
-        # 1. Заменяем жесткие пути в коде: "detours/detours.h" -> <detours.h>
-        Get-ChildItem -Path src -Include *.cpp,*.h -Recurse | ForEach-Object {
-            $content = Get-Content $_.FullName
-            $content = $content -replace '["<]detours/detours\.h[">]', '<detours.h>'
-            $content = $content -replace '"[^"]*detours\.lib"', '"detours.lib"'
-            Set-Content -Path $_.FullName -Value $content
-        }
-        
-        # 2. Убираем пути к несуществующим папкам detours.lib в настройках проекта
-        $proj = "src/force-proxy.vcxproj"
-        if (Test-Path $proj) {
-            $content = Get-Content $proj
-            $content = $content -replace '[a-zA-Z0-9_\\\/\-\.]*detours\.lib', 'detours.lib'
-            Set-Content -Path $proj -Value $content
-        }
+    - name: Enable vcpkg integration
+      run: vcpkg integrate install
 
     - name: Restore NuGet packages
       run: nuget restore force-proxy.sln
