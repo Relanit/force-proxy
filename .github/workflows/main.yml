@@ -1,0 +1,31 @@
+name: Build DLL
+
+on:
+  workflow_dispatch: # Позволяет запускать сборку вручную
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Restore NuGet packages
+      run: nuget restore force-proxy.sln
+
+    - name: Build x64 Release
+      run: msbuild force-proxy.sln /p:Configuration=Release /p:Platform=x64
+
+    - name: Build x86 Release
+      run: msbuild force-proxy.sln /p:Configuration=Release /p:Platform=x86
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ForceProxy-DLLs
+        path: |
+          x64/Release/*.dll
+          Release/*.dll
+          */Release/*.dll
